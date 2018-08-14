@@ -1,11 +1,22 @@
-# citizen
+# Citizen
 
-A social web API for beaker/dat applications
-
-## User API
+A social web API for beaker/dat applications. Requires a Web browser which supports the Beaker/Dat stack (e.g. [Beaker browser](https://beakerbrowser.com)).
 
 ```js
-var user = new User(url)
+// import the current dev build
+import * as Citizen from 'dat://citizen.hashbase.io/dev/api.js'
+
+// Citizen.User
+// Citizen.Index
+```
+
+ - [Todos](./todos.md)
+ - [Tests](dat://testify.hashbase.io/?test_url=dat://citizen.hashbase.io/dev/test/microblog.js)
+
+## Citizen.User API
+
+```js
+var user = new Citizen.User(url)
 await user.setup()
 
 await user.getProfile()
@@ -20,10 +31,10 @@ await user.microblog.edit(id, {type, ..})
 await user.microblog.remove(id)
 ```
 
-## Index API
+## Citizen.Index API
 
 ```js
-var index = new Index(url)
+var index = new Citizen.Index(url)
 await index.setup()
 
 await index.crawl(url, {
