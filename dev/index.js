@@ -1,6 +1,6 @@
 /* globals DatArchive URL */
 
-import {toUrl, ensureFolderExists, ignoreNotFound} from './util.js'
+import {toUrl, ensureFolderExists, ignoreNotFound, deepClone} from './util.js'
 import {User} from './user.js'
 import * as Schemas from './schemas.js'
 
@@ -27,17 +27,6 @@ export class Index extends DatArchive {
 
     await Promise.all([
       this.microblog.setup()
-    ])
-  }
-
-  async crawl (url, opts) {
-    // TODO- lock region
-    // TODO- warn about non-domain-names
-
-    opts = new Schemas.CrawlOpts(opts)
-    var user = new User(url)
-    await Promise.all([
-      this.microblog.crawl(user, opts)
     ])
   }
 }
@@ -87,7 +76,9 @@ class MicroblogAPI extends IndexAPI {
     return this.archive.writeFile('/index/microblog.json', JSON.stringify(this._state))    
   }
 
-  async crawl (user, opts) {
+  async crawlSite (url, opts) {
+    opts = new Schemas.MicroblogCrawlOpts(opts)
+    var user = new User(url)
     var domain = user.getDomainName()
     var key = await DatArchive.resolveName(domain)
     var siteState = this._state.sites[domain]
@@ -124,6 +115,9 @@ class MicroblogAPI extends IndexAPI {
       this._state.feed = this._state.feed.filter(p => !(p.author === domain && p.filename === filename))
       // TODO remove thread
 
+      // update version
+      version = Math.max(version, changesToIndex[filename].version)
+
       if (changesToIndex[filename].type === 'del') {
         // no new data to index, remove only
         continue
@@ -133,14 +127,14 @@ class MicroblogAPI extends IndexAPI {
       let post = await user.microblog.get(filename)
 
       // feed index
-      if (opts.indexes.microblog.feed) {
+      if (opts.indexes.feed) {
         if (!post.threadRoot && !post.threadParent) { // root posts only
           this._state.feed.push(Schemas.MicroblogIndex.postToFeedItem(post)) // add / readd
         }
       }
 
       // threads index
-      if (opts.indexes.microblog.replies) {
+      if (opts.indexes.replies) {
         if (post.threadRoot) {
           let arr = this._state.threads[post.threadRoot]
           if (!arr) {
@@ -159,6 +153,15 @@ class MicroblogAPI extends IndexAPI {
 
     // write updated state
     await this._save()
+  }
+
+  async uncrawlSite (url) {
+    // TODO
+    throw new Error('uncrawlSite() Not yet implemented')
+  }
+
+  listCrawledSites () {
+    return deepClone(this._state.sites)
   }
 
   async listFeed (query) {

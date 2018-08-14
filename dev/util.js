@@ -38,3 +38,7 @@ export function ignoreNotFound (e) {
   }
   throw e
 }
+
+export function deepClone (v) {
+  return JSON.parse(JSON.stringify(v))
+}

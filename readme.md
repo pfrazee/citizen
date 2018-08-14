@@ -21,7 +21,7 @@ await user.setup()
 
 await user.getProfile()
 await user.setProfile({name, bio})
-await user.setAvatar({data, format})
+await user.setAvatar({data, format}) // not yet implemented
 
 await user.microblog.list({..})
 await user.microblog.count({..})
@@ -37,14 +37,14 @@ await user.microblog.remove(id)
 var index = new Citizen.Index(url)
 await index.setup()
 
-await index.crawl(url, {
+await index.microblog.crawlSite(url, {
   indexes: {
-    microblog: {
-      feed: true,
-      replies: true
-    }
+    feed: true,
+    replies: true
   }
 })
+await index.microblog.uncrawlSite(url) // not yet implemented
+index.microblog.listCrawledSites({..})
 
 index.microblog.listFeed({..})
 index.microblog.getPost(url)

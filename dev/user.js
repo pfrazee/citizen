@@ -49,6 +49,7 @@ export class User extends DatArchive {
 
   async setAvatar ({data, format}) {
     // TODO
+    throw new Error('setAvatar() Not yet implemented')
   }
 }
 

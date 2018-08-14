@@ -163,14 +163,13 @@ export class MicroblogPostsQuery extends Schema {
   }
 }
 
-export class CrawlOpts extends Schema {
+export class MicroblogCrawlOpts extends Schema {
   constructor (input, meta) {
     super(input, meta)
 
     this.indexes = this.get('indexes', 'object', {})
-    this.indexes.microblog = _get(this.indexes, 'microblog', 'object', {})
-    this.indexes.microblog.feed = _get(this.indexes.microblog, 'feed', 'boolean', true)
-    this.indexes.microblog.replies = _get(this.indexes.microblog, 'replies', 'boolean', true)
+    this.indexes.feed = _get(this.indexes, 'feed', 'boolean', true)
+    this.indexes.replies = _get(this.indexes, 'replies', 'boolean', true)
   }
 }
 

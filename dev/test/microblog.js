@@ -198,8 +198,8 @@ export default function (test) {
     t.deepEqual(await index.microblog.listFeed(), [], 'Empty list')
   })
 
-  test('crawl()', async t => {
-    await index.crawl(user)
+  test('microblog.crawl()', async t => {
+    await index.microblog.crawlSite(user)
   })
 
   test('microblog.listFeed()', async t => {
@@ -477,9 +477,24 @@ export default function (test) {
 
   test('crawl() both users', async t => {
     await Promise.all([
-      await index.crawl(user),
-      await index.crawl(user2)
+      await index.microblog.crawlSite(user),
+      await index.microblog.crawlSite(user2)
     ])
+
+    var sites = index.microblog.listCrawledSites()
+    console.debug(sites)
+
+    var user1key = user.url.slice('dat://'.length)
+    t.deepEqual(sites[user1key], {
+      key: user1key,
+      version: 15
+    })
+    
+    var user2key = user2.url.slice('dat://'.length)
+    t.deepEqual(sites[user2key], {
+      key: user2key,
+      version: 5
+    })
   })
 
   test('microblog.listFeed()', async t => {
