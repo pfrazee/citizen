@@ -1,5 +1,2 @@
-import {User} from './user.js'
-import {Index} from './index.js'
-
-export User
-export Index
+export {User} from './user.js'
+export {Index} from './index.js'
