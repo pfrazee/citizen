@@ -40,5 +40,6 @@ export function ignoreNotFound (e) {
 }
 
 export function deepClone (v) {
+  if (!v) return v
   return JSON.parse(JSON.stringify(v))
 }
