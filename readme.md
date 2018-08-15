@@ -45,6 +45,7 @@ await index.microblog.crawlSite(url, {
 })
 await index.microblog.uncrawlSite(url) // not yet implemented
 index.microblog.listCrawledSites({..})
+index.microblog.getCrawledSite(domain)
 
 index.microblog.listFeed({..})
 index.microblog.getPost(url)

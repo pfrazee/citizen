@@ -169,6 +169,10 @@ class MicroblogAPI extends IndexAPI {
     return deepClone(this._state.sites)
   }
 
+  getCrawledSite (domain) {
+    return deepClone(this._state.sites[domain])
+  }
+
   async listFeed (query) {
     query = new Schemas.MicroblogIndexFeedQuery(query)
     var {after, before, includeContent, offset, limit, reverse} = query
