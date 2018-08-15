@@ -119,9 +119,6 @@ class MicroblogAPI extends IndexAPI {
       this._state.feed = this._state.feed.filter(p => !(p.author === domain && p.filename === filename))
       // TODO remove thread
 
-      // update version
-      version = Math.max(version, changesToIndex[filename].version)
-
       if (changesToIndex[filename].type === 'del') {
         // no new data to index, remove only
         continue
@@ -153,7 +150,8 @@ class MicroblogAPI extends IndexAPI {
     this._state.feed.sort((a, b) => b.createdAt - a.createdAt) // sort by timestamp
 
     // update crawl state
-    this._state.sites[domain] = {key, version}
+    version = changes[changes.length - 1].version
+    this._state.sites[domain] = {key, version, name: profile.name || ''}
 
     // write updated state
     await this._save()
