@@ -80,9 +80,13 @@ class MicroblogAPI extends IndexAPI {
     opts = new Schemas.MicroblogCrawlOpts(opts)
     var user = new User(url)
     var domain = user.getDomainName()
-    var key = await DatArchive.resolveName(domain)
     var siteState = this._state.sites[domain]
 
+    if (!siteState) {
+      siteState = this._state.sites[domain] = {key: '', name: '', version: 0}
+    }
+    
+    var key = await DatArchive.resolveName(domain)
     if (siteState && siteState.key !== key) { // key change
       // warn user
       // TODO
