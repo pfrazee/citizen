@@ -149,6 +149,9 @@ class MicroblogAPI extends IndexAPI {
     }
     this._state.feed.sort((a, b) => b.createdAt - a.createdAt) // sort by timestamp
 
+    // fetch latest username
+    var profile = await user.getProfile().catch(e => ({}))
+
     // update crawl state
     version = changes[changes.length - 1].version
     this._state.sites[domain] = {key, version, name: profile.name || ''}

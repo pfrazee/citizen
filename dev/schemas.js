@@ -95,7 +95,8 @@ export class MicroblogIndex extends Schema {
       if (typeof site.key !== 'string') continue
       res[domain] = {
         key: site.key,
-        version: typeof site.version === 'number' ? site.version : 0
+        version: typeof site.version === 'number' ? site.version : 0,
+        name: typeof site.name === 'string' ? site.name : ''
       }
     }
     return res

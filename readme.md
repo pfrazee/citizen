@@ -111,6 +111,7 @@ Metadata regarding a previously-indexed site.
 |-|-|-|
 | `key` | string | The resolved key of the dat. |
 | `version` | string | The version of the dat which has been indexed. |
+| `name` | string | The profile name of the site. |
 
 ### MicroblogIndexFeedPost
 
