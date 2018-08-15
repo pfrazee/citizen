@@ -87,18 +87,13 @@ class MicroblogAPI extends IndexAPI {
     }
     
     var key = await DatArchive.resolveName(domain)
-    if (siteState && siteState.key !== key) { // key change
+    if (siteState.key && siteState.key !== key) { // key change
       // warn user
       // TODO
 
-      // remove all previously indexed data
-      let origin = `dat://${domain}/`
-      this._state.feed = this._state.feed.filter(post => post.author !== domain)
-      for (let threadUrl in this._state.threads) {
-        this._state.threads[threadUrl] = this._state.threads[threadUrl].filter(url => {
-          return !url.startsWith(origin)
-        })
-      }
+      // reset user
+      await this.uncrawlSite(domain)
+      siteState = this._state.sites[domain] = {key: '', name: '', version: 0}
     }
 
     // get a list of files that need indexing since last crawl()
@@ -161,8 +156,23 @@ class MicroblogAPI extends IndexAPI {
   }
 
   async uncrawlSite (url) {
-    // TODO
-    throw new Error('uncrawlSite() Not yet implemented')
+    var user = new User(url)
+    var domain = user.getDomainName()
+
+    // remove all previously indexed data
+    let origin = `dat://${domain}/`
+    this._state.feed = this._state.feed.filter(post => post.author !== domain)
+    for (let threadUrl in this._state.threads) {
+      this._state.threads[threadUrl] = this._state.threads[threadUrl].filter(url => {
+        return !url.startsWith(origin)
+      })
+    }
+
+    // update crawl state
+    delete this._state.sites[domain]
+
+    // write updated state
+    await this._save()
   }
 
   listCrawledSites () {

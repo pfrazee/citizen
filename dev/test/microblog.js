@@ -482,17 +482,18 @@ export default function (test) {
     ])
 
     var sites = index.microblog.listCrawledSites()
-    console.debug(sites)
 
     var user1key = user.url.slice('dat://'.length)
     t.deepEqual(sites[user1key], {
       key: user1key,
+      name: 'Alice',
       version: 15
     })
     
     var user2key = user2.url.slice('dat://'.length)
     t.deepEqual(sites[user2key], {
       key: user2key,
+      name: '',
       version: 5
     })
   })
@@ -612,6 +613,59 @@ export default function (test) {
     t.equal(thread.replies[0].text, 'Reply 1')
     t.equal(thread.replies[1].text, 'Reply 2')
     t.equal(thread.replies[2].text, 'User2 Reply 1')
+    t.equal(thread.replies[0].replies[0].text, 'Reply 1 Reply 1')
+    t.equal(thread.replies[0].replies[0].root, thread)
+    t.equal(thread.replies[0].replies[0].parent, thread.replies[0])
+  })
+
+  test('uncrawl', async t => {
+    index.microblog.uncrawlSite(user2.url)
+
+    var sites = index.microblog.listCrawledSites()
+    t.equal(Object.keys(sites).length, 1)
+
+    var user1key = user.url.slice('dat://'.length)
+    t.deepEqual(sites[user1key], {
+      key: user1key,
+      name: 'Alice',
+      version: 15
+    })
+    
+    var feed = await index.microblog.listFeed()
+    t.deepEqual(feed.map(extractFeedPost), [
+      {
+        author: user.url.slice('dat://'.length),
+        hasFilename: true,
+        hasCreatedAt: true,
+        hasThreadRoot: false,
+        post: {
+          type: 'text',
+          text: 'Post 2',
+          hasThreadRoot: false,
+          hasThreadParent: false,
+          hasCreatedAt: true
+        }
+      },
+      {
+        author: user.url.slice('dat://'.length),
+        hasFilename: true,
+        hasCreatedAt: true,
+        hasThreadRoot: false,
+        post: {
+          type: 'text',
+          text: 'Hello world!!',
+          hasThreadRoot: false,
+          hasThreadParent: false,
+          hasCreatedAt: true
+        }
+      }
+    ], 'listFeed()')
+
+    var thread = await index.microblog.getThread(feed[feed.length - 1].post)
+    t.equal(thread.text, 'Hello world!!')
+    t.equal(thread.replies[0].text, 'Reply 1')
+    t.equal(thread.replies[1].text, 'Reply 2')
+    t.equal(thread.replies[2], undefined)
     t.equal(thread.replies[0].replies[0].text, 'Reply 1 Reply 1')
     t.equal(thread.replies[0].replies[0].root, thread)
     t.equal(thread.replies[0].replies[0].parent, thread.replies[0])

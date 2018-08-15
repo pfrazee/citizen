@@ -43,7 +43,7 @@ await index.microblog.crawlSite(url, {
     replies: true
   }
 })
-await index.microblog.uncrawlSite(url) // not yet implemented
+await index.microblog.uncrawlSite(url)
 index.microblog.listCrawledSites({..})
 index.microblog.getCrawledSite(domain)
 
