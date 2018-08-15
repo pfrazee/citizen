@@ -8,6 +8,9 @@ export function toUrl (v) {
     return v.getUrl()
   }
   if (typeof v === 'string') {
+    if (v.indexOf('://') === -1) {
+      v = 'dat://' + v
+    }
     return v
   }
   if (v === window.location) {
