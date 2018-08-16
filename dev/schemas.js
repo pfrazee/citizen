@@ -59,6 +59,23 @@ export class Profile extends Schema {
 
     this.name = this.get('name', 'string', '')
     this.bio = this.get('bio', 'string', '')
+    this.follows = Profile.toProfileFollows(this._input.follows)
+  }
+
+  static toProfileFollows (follows) {
+    if (!follows || typeof follows !== 'object' || !Array.isArray(follows)) {
+      return []
+    }
+
+    follows = follows.map(follow => {
+      if (!follow || typeof follow !== 'object') return false
+      if (!follow.url || typeof follow.url !== 'string') return false
+      return {
+        url: follow.url,
+        name: typeof follow.name === 'string' ? follow.name : false
+      }
+    })
+    return follows.filter(Boolean)
   }
 }
 
@@ -74,13 +91,11 @@ export class MicroblogPost extends Schema {
   }
 }
 
-export class MicroblogIndex extends Schema {
+export class CitizenIndex extends Schema {
   constructor (input, meta) {
     super(input, meta)
 
-    this.sites = MicroblogIndex.toSites(this._input.sites)
-    this.feed = MicroblogIndex.toFeed(this._input.feed)
-    this.threads = MicroblogIndex.toThreads(this._input.threads)
+    this.sites = CitizenIndex.toSites(this._input.sites)
   }
 
   static toSites (sites) {
@@ -100,6 +115,15 @@ export class MicroblogIndex extends Schema {
       }
     }
     return res
+  }
+}
+
+export class MicroblogIndex extends Schema {
+  constructor (input, meta) {
+    super(input, meta)
+
+    this.feed = MicroblogIndex.toFeed(this._input.feed)
+    this.threads = MicroblogIndex.toThreads(this._input.threads)
   }
 
   static toFeed (feed) {
@@ -146,6 +170,28 @@ export class MicroblogIndex extends Schema {
   }
 }
 
+export class SocialIndex extends Schema {
+  constructor (input, meta) {
+    super(input, meta)
+
+    this.followers = SocialIndex.toFollowers(this._input.followers)
+  }
+
+  static toFollowers (followers) {
+    if (!followers || typeof followers !== 'object' || Array.isArray(followers)) {
+      return {}
+    }
+
+    var res = {}
+    for (let url in followers) {
+      let f = followers[url]
+      if (!f || !Array.isArray(f)) continue
+      res[url] = f.filter(v => typeof v === 'string')
+    }
+    return res
+  }
+}
+
 export class MicroblogPostsQuery extends Schema {
   constructor (input, meta) {
     super(input, meta)
@@ -164,13 +210,16 @@ export class MicroblogPostsQuery extends Schema {
   }
 }
 
-export class MicroblogCrawlOpts extends Schema {
+export class CrawlOpts extends Schema {
   constructor (input, meta) {
     super(input, meta)
 
     this.indexes = this.get('indexes', 'object', {})
-    this.indexes.feed = _get(this.indexes, 'feed', 'boolean', true)
-    this.indexes.replies = _get(this.indexes, 'replies', 'boolean', true)
+    this.indexes.microblog = _get(this.indexes, 'microblog', 'object', {})
+    this.indexes.microblog.feed = _get(this.indexes.microblog, 'feed', 'boolean', true)
+    this.indexes.microblog.replies = _get(this.indexes.microblog, 'replies', 'boolean', true)
+    this.indexes.social = _get(this.indexes, 'social', 'object', {})
+    this.indexes.social.follows = _get(this.indexes.social, 'follows', 'boolean', true)
   }
 }
 

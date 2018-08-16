@@ -11,7 +11,7 @@ import * as Citizen from 'dat://citizen.hashbase.io/dev/api.js'
 ```
 
  - [Todos](./todos.md)
- - [Tests](dat://testify.hashbase.io/?test_url=dat://citizen.hashbase.io/dev/test/microblog.js)
+ - [Tests](dat://testify.hashbase.io/?test_url=dat://citizen.hashbase.io/dev/test/index.js)
 
 ## Citizen.User API
 
@@ -22,6 +22,11 @@ await user.setup()
 await user.getProfile()
 await user.setProfile({name, bio})
 await user.setAvatar({data, format}) // not yet implemented
+
+await user.follow(url, {name})
+await user.unfollow(url)
+await user.isFollowing(url)
+await user.listFollows()
 
 await user.microblog.list({..})
 await user.microblog.count({..})
@@ -37,19 +42,35 @@ await user.microblog.remove(id)
 var index = new Citizen.Index(url)
 await index.setup()
 
-await index.microblog.crawlSite(url, {
+// crawler controls
+
+await index.crawlSite(url, {
   indexes: {
-    feed: true,
-    replies: true
+    microblog: {
+      feed: true,
+      replies: true
+    },
+    social: {
+      follows: true
+    }
   }
 })
-await index.microblog.uncrawlSite(url)
-index.microblog.listCrawledSites({..})
-index.microblog.getCrawledSite(domain)
+await index.uncrawlSite(url)
+index.listCrawledSites()
+index.getCrawledSite(domain)
 
-index.microblog.listFeed({..})
-index.microblog.getPost(url)
-index.microblog.getThread(url)
+// microblog index
+
+await index.microblog.listFeed({..})
+await index.microblog.getPost(url)
+await index.microblog.getThread(url)
+
+// social index
+
+await index.social.listFollowers(url)
+await index.social.listFriends(url)
+await index.social.isFollowing(urlSource, urlTarget)
+await index.social.isFriends(urlA, urlB)
 ```
 
 ## File structure
@@ -59,7 +80,9 @@ index.microblog.getThread(url)
 | `/profile.json` | `Profile` | The user's profile information. |
 | `/avatar.png` | - | The user's image. Should be a square between 100-600px in width/height. |
 | `/posts/*.json` | `MicroblogPost` | The user's posts. The filename sort order will determine the list order. |
-| `/indexes/microblog.json` | `MicroblogIndex` | The merged-microblog feed index. |
+| `/indexes/citizen.json` | `CitizenIndex` | The top-level index metadata. |
+| `/indexes/citizen/microblog.json` | `MicroblogIndex` | The merged-microblog feed index. |
+| `/indexes/citizen/social.json` | `SocialIndex` | The social-graph index. |
 
 ## File schemas
 
@@ -71,6 +94,16 @@ User information.
 |-|-|-|
 | `name` | string | The user's name. |
 | `bio` | string | A short description of the user. |
+| `follows` | Array of ProfileFollow | The list of accounts that this user follows. |
+
+### ProfileFollow
+
+Information about a followed user.
+
+| field | type | description |
+|-|-|-|
+| `url` | string | The url of the followed user. |
+| `name` | string | The profile name of the followed user. (Optional.) |
 
 ### MicroblogPost
 
@@ -94,17 +127,15 @@ A user-mention inside a `MicroblogPost`.
 | `url` | string | The URL of the mentioned user. |
 | `name` | string | The name of the mentioned user. |
 
-### MicroblogIndex
+### CitizenIndex
 
-A combined view of multiple microblogs. Provides a feed view and thread pointers.
+Top-level metadata about the indexes.
 
 | field | type | description |
 |-|-|-|
-| `sites` | Object of domain => MicroblogIndexSite | Metadata regarding the indexed sites. |
-| `feed` | Array of MicroblogIndexFeedPost | The indexed list of posts, ordered into a merged feed view. |
-| `threads` | Object of url => Array of urls | A map of the known URLs which are replies to a given url. Generated from `threadRoot`. |
+| `sites` | Object of domain => CitizenIndexSite | Metadata regarding the indexed sites. |
 
-### MicroblogIndexSite
+### CitizenIndexSite
 
 Metadata regarding a previously-indexed site.
 
@@ -113,6 +144,15 @@ Metadata regarding a previously-indexed site.
 | `key` | string | The resolved key of the dat. |
 | `version` | string | The version of the dat which has been indexed. |
 | `name` | string | The profile name of the site. |
+
+### MicroblogIndex
+
+A combined view of multiple microblogs. Provides a feed view and thread pointers.
+
+| field | type | description |
+|-|-|-|
+| `feed` | Array of MicroblogIndexFeedPost | The indexed list of posts, ordered into a merged feed view. |
+| `threads` | Object of url => Array of urls | A map of the known URLs which are replies to a given url. Generated from `threadRoot`. |
 
 ### MicroblogIndexFeedPost
 
@@ -124,3 +164,11 @@ A feed-index pointer to a post.
 | `filename` | string | The filename of the post. |
 | `createdAt` | number | The creation timestamp of the original post. |
 | `threadRoot` | string | If the post is a reply, this is the URL of the root post in the thread. |
+
+### SocialIndex
+
+The social-graph index.
+
+| field | type | description |
+|-|-|-|
+| `followers` | Object of url => Array of urls | A map of "follower" relationships. Each entry is an array of users following the entry's key. |

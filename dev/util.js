@@ -19,6 +19,10 @@ export function toUrl (v) {
   throw new InvalidURLError(v)
 }
 
+export function toDomain (v) {
+  return (new URL(toUrl(v))).hostname
+}
+
 export async function ensureFolderExists (archive, path) {
   try {
     await archive.mkdir(path)

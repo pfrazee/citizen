@@ -1,7 +1,7 @@
 /* globals DatArchive */
 
 import {newId} from './new-id.js'
-import {toUrl, ensureFolderExists, ignoreNotFound} from './util.js'
+import {toUrl, toDomain, ensureFolderExists, ignoreNotFound} from './util.js'
 import * as Schemas from './schemas.js'
 import {NotTheOwnerError} from './errors.js'
 
@@ -42,14 +42,60 @@ export class User extends DatArchive {
   }
 
   async setProfile (details) {
+    // lock
+    // TODO
+
+    // read current
+    var profile = await this.getProfile()
+
+    // update
+    for (var k in details) {
+      profile[k] = details[k]
+    }
+
     // write file
-    var profile = new Schemas.Profile(details, this.getProfileUrl())
+    profile = new Schemas.Profile(profile, this.getProfileUrl())
     await this.writeFile('/profile.json', JSON.stringify(profile))
   }
 
   async setAvatar ({data, format}) {
     // TODO
     throw new Error('setAvatar() Not yet implemented')
+  }
+
+  async follow (url, {name} = {}) {
+    url = toDomain(url)
+
+    // lock
+    // TODO
+
+    // read, update, write
+    var profile = await this.getProfile()
+    profile.follows = profile.follows.filter(f => f.url !== url)
+    profile.follows.push({url, name})
+    await this.setProfile(profile)
+  }
+
+  async unfollow (url) {
+    url = toDomain(url)
+
+    // lock
+    // TODO
+
+    // read, update, write
+    var profile = await this.getProfile()
+    profile.follows = profile.follows.filter(f => f.url !== url)
+    await this.setProfile(profile)
+  }
+
+  async isFollowing (url) {
+    var profile = await this.getProfile()
+    return profile.follows.find(f => f.url === url)
+  }
+
+  async listFollows () {
+    var profile = await this.getProfile()
+    return profile.follows
   }
 }
 

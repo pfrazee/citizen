@@ -19,13 +19,14 @@ export default function (test) {
     await index.setup()
   })
 
-  test.section('User class')
+  test.section('microblog - User class')
 
   test('read/write profile', async t => {
     var profile = await user.getProfile()
     t.deepEqual(profile, {
       name: '',
-      bio: ''
+      bio: '',
+      follows: []
     }, 'Empty profile')
 
     await user.setProfile({
@@ -36,7 +37,8 @@ export default function (test) {
     var profile = await user.getProfile()
     t.deepEqual(profile, {
       name: 'Alice',
-      bio: 'A cool hacker girl'
+      bio: 'A cool hacker girl',
+      follows: []
     }, 'Updated profile')
   })
 
@@ -192,14 +194,14 @@ export default function (test) {
     await t.throwsAsync(() => user.microblog.remove('fake'))
   })
 
-  test.section('Index class')
+  test.section('microblog - Index class')
 
   test('microblog.listFeed() empty', async t => {
     t.deepEqual(await index.microblog.listFeed(), [], 'Empty list')
   })
 
-  test('microblog.crawl()', async t => {
-    await index.microblog.crawlSite(user)
+  test('crawl', async t => {
+    await index.crawlSite(user)
   })
 
   test('microblog.listFeed()', async t => {
@@ -477,17 +479,17 @@ export default function (test) {
 
   test('crawl() both users', async t => {
     await Promise.all([
-      await index.microblog.crawlSite(user),
-      await index.microblog.crawlSite(user2)
+      await index.crawlSite(user),
+      await index.crawlSite(user2)
     ])
 
-    var sites = index.microblog.listCrawledSites()
+    var sites = index.listCrawledSites()
 
     var user1key = user.url.slice('dat://'.length)
     t.deepEqual(sites[user1key], {
       key: user1key,
       name: 'Alice',
-      version: 15
+      version: 17
     })
     
     var user2key = user2.url.slice('dat://'.length)
@@ -619,16 +621,16 @@ export default function (test) {
   })
 
   test('uncrawl', async t => {
-    index.microblog.uncrawlSite(user2.url)
+    await index.uncrawlSite(user2.url)
 
-    var sites = index.microblog.listCrawledSites()
+    var sites = index.listCrawledSites()
     t.equal(Object.keys(sites).length, 1)
 
     var user1key = user.url.slice('dat://'.length)
     t.deepEqual(sites[user1key], {
       key: user1key,
       name: 'Alice',
-      version: 15
+      version: 17
     })
     
     var feed = await index.microblog.listFeed()
