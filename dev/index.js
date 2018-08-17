@@ -112,7 +112,8 @@ export class Index extends DatArchive {
   }
 
   getCrawledSite (domain) {
-    return deepClone(this._state.sites[domain])
+    domain = toDomain(domain)
+    return (domain in this._state.sites) ? deepClone(this._state.sites[domain]) : {key: '', name: '', version: 0}
   }
 }
 

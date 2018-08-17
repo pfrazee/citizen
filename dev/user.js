@@ -84,13 +84,13 @@ export class User extends DatArchive {
 
     // read, update, write
     var profile = await this.getProfile()
-    profile.follows = profile.follows.filter(f => f.url !== url)
+    profile.follows = profile.follows.filter(f => toDomain(f.url) !== url)
     await this.setProfile(profile)
   }
 
   async isFollowing (url) {
     var profile = await this.getProfile()
-    return profile.follows.find(f => f.url === url)
+    return profile.follows.find(f => toDomain(f.url) === url)
   }
 
   async listFollows () {
