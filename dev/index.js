@@ -246,7 +246,7 @@ class MicroblogAPI extends IndexAPI {
     }
 
     if (reverse) results = results.reverse()
-    if (offset && limit) results = results.slice(offset, limit)
+    if (offset && limit) results = results.slice(offset, offset + limit)
     else if (offset) results = results.slice(offset)
     else if (limit) results = results.slice(0, limit)
 
